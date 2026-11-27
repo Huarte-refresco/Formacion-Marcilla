@@ -185,6 +185,11 @@ const TOUR = [
 ];
 const tourSeen = id => !!(S.tour && S.tour[id]);
 const tourDone = () => TOUR.every(t => tourSeen(t.id));
+// Modo administrador: todo abierto, sin bloqueos. No es seguridad real (la página es pública), solo comodidad.
+// Para cambiar el código: calcular h53('nuevo-codigo') y sustituir ADMIN_HASH.
+function h53(str, seed=0){ let h1=0xdeadbeef^seed, h2=0x41c6ce57^seed; for(let i=0,ch;i<str.length;i++){ ch=str.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677);} h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return 4294967296*(2097151&h2)+(h1>>>0); }
+const ADMIN_HASH = 7268978719236470;
+const unlocked = () => !!S.admin || tourDone();
 
 // ---------- Estado ----------
 let mem = null;
@@ -194,7 +199,7 @@ function save(){ mem = S; try{ localStorage.setItem(KEY, JSON.stringify(S)); }ca
 let S = load();
 if(!S.done) S.done = {};
 if(!S.tour) S.tour = {};
-let view = !S.profile ? {dept:'perfil', mod:null, tab:'portal'} : (tourDone() ? {dept:S.profile.dept, mod:null, tab:'portal'} : {dept:'comun', mod:null, tab:'portal'});
+let view = !S.profile ? {dept:'perfil', mod:null, tab:'portal'} : (unlocked() ? {dept:S.profile.dept, mod:null, tab:'portal'} : {dept:'comun', mod:null, tab:'portal'});
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -206,20 +211,20 @@ const today = () => new Date().toLocaleDateString('es-ES');
 // ---------- Render ----------
 function renderHeader(){
   const b = $('#profBtn');
-  b.textContent = S.profile ? '👤 ' + S.profile.name : '👤 Identificarme';
+  b.textContent = (S.admin ? '🛠 ' : '👤 ') + (S.profile ? S.profile.name : 'Identificarme');
   b.onclick = () => { view.tab='portal'; view.mod=null; view.dept='perfil'; render(); };
 }
 function renderNav(){
   const n = $('#nav');
   n.innerHTML = DEPTS.map(d => {
     const p = pct(d.id);
-    const locked = d.id!=='comun' && S.profile && !tourDone();
+    const locked = d.id!=='comun' && S.profile && !unlocked();
     return `<button data-d="${d.id}" ${locked?'title="Completa primero el recorrido por la planta"':''} style="${locked?'opacity:.5':''}" class="${view.dept===d.id && view.tab==='portal'?'on':''}"><span class="ico">${d.ic}</span>${d.name}<span class="pct">${locked?'🔒':(p===null?'':p+' %')}</span></button>`;
   }).join('') + '<div class="sep"></div>' +
   `<button data-d="registro" class="${view.tab==='registro'?'on':''}"><span class="ico">✓</span>Registro de formación</button>`;
   n.querySelectorAll('button').forEach(b => b.onclick = () => {
     const d = b.dataset.d;
-    if(d!=='comun' && d!=='registro' && S.profile && !tourDone()){ view = {dept:'comun', mod:null, tab:'portal'}; render(); return; }
+    if(d!=='comun' && d!=='registro' && S.profile && !unlocked()){ view = {dept:'comun', mod:null, tab:'portal'}; render(); return; }
     if(d==='registro'){ view = {dept:view.dept, mod:null, tab:'registro'}; }
     else view = {dept:d, mod:null, tab:'portal'};
     render();
@@ -229,7 +234,7 @@ function render(){
   document.querySelector('.wrap').classList.toggle('gate', !S.profile);
   renderHeader(); renderNav();
   const m = $('#main');
-  if(S.profile && !tourDone() && view.tab==='portal' && view.dept!=='comun' && view.dept!=='perfil'){ view = {dept:'comun', mod:null, tab:'portal'}; }
+  if(S.profile && !unlocked() && view.tab==='portal' && view.dept!=='comun' && view.dept!=='perfil'){ view = {dept:'comun', mod:null, tab:'portal'}; }
   if(view.dept==='perfil' && view.tab==='portal') return renderProfile(m);
   if(view.tab==='registro') return renderRegistro(m);
   if(view.mod && /^t\d$/.test(view.mod)) return renderTourStep(m, TOUR.find(t=>t.id===view.mod));
@@ -258,12 +263,12 @@ function renderWelcome(m){
   let h = `<div class="hero"><h2>Bienvenido a Refresco${first?', '+first:''}</h2><p>Antes de pasar a tu departamento, haz un recorrido por todos los procesos de la planta. Así verás cómo encaja tu trabajo en el conjunto.</p></div>`;
   h += `<div class="card"><div class="row" style="justify-content:space-between"><b>Recorrido por la planta</b><span style="color:var(--mut);font-size:13px">${seen} de ${TOUR.length} procesos vistos</span></div><div class="bar" style="margin:8px 0 12px"><i style="width:${Math.round(100*seen/TOUR.length)}%"></i></div><div class="flow">` +
     TOUR.map((t,i)=>{
-      const ok = tourSeen(t.id), avail = ok || i===0 || tourSeen(TOUR[i-1].id);
+      const ok = tourSeen(t.id), avail = S.admin || ok || i===0 || tourSeen(TOUR[i-1].id);
       return `<button data-t="${t.id}" ${avail?'':'disabled'} style="${avail?'':'opacity:.45;cursor:not-allowed'}"><b>${ok?'✓ ':(avail?'':'🔒 ')}${i+1}. ${t.title}</b><span>${t.desc}</span></button>`;
     }).join('<span class="arrow">→</span>') + `</div>`;
-  if(done){
+  if(done || S.admin){
     const dn = S.profile ? DEPTS.find(x=>x.id===S.profile.dept).name : '';
-    h += `<p style="margin:4px 0 12px"><b>¡Recorrido completado!</b> Ya puedes pasar a la formación de tu departamento.</p><button class="btn" id="goDept">Continuar a mi departamento: ${esc(dn)} →</button>`;
+    h += `<p style="margin:4px 0 12px">${done?'<b>¡Recorrido completado!</b> Ya puedes pasar a la formación de tu departamento.':'<b>Modo administrador:</b> tienes todo desbloqueado.'}</p><div class="row"><button class="btn" id="goDept">Continuar a mi departamento: ${esc(dn)} →</button>${S.admin?'<button class="btn ghost" id="resetP">Reiniciar mi progreso (para probar)</button>':''}</div>`;
   } else {
     h += `<p style="margin:4px 0 0;color:var(--mut);font-size:13px">Ve los procesos en orden. Al terminar los ${TOUR.length} se desbloquea la formación de tu departamento.</p>`;
   }
@@ -271,6 +276,7 @@ function renderWelcome(m){
   m.innerHTML = h;
   m.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { view.mod = b.dataset.t; render(); });
   const gd = $('#goDept'); if(gd) gd.onclick = () => { view = {dept:S.profile.dept, mod:null, tab:'portal'}; render(); };
+  const rp = $('#resetP'); if(rp) rp.onclick = () => { S.tour = {}; S.done = {}; save(); render(); };
   window.scrollTo(0,0);
 }
 
@@ -363,20 +369,26 @@ function buildQuiz(mod, rec, onChange){
   draw();
 }
 
+let draft = null;
 function renderProfile(m){
-  const p = S.profile || {name:'', puesto:'', dept:'calidad'};
+  const p = S.profile || draft || {name:'', puesto:'', dept:'calidad'};
   const first = !S.profile;
   m.innerHTML = `<h2>${first?'Bienvenido a Refresco':'Tu identificación'}</h2><p class="lead">${first?'Identifícate para empezar tu formación. Se usa para el registro de formación.':'Se usa para el registro de formación.'}</p>
   <div class="card" style="display:grid;gap:10px;max-width:460px">
     <label>Nombre y apellidos<br><input type="text" id="pn" style="width:100%" value="${esc(p.name)}"></label>
     <label>Puesto<br><input type="text" id="pp" style="width:100%" value="${esc(p.puesto)}"></label>
     <label>Departamento<br><select id="pd" style="width:100%">${DEPTS.filter(d=>d.id!=='comun').map(d=>`<option value="${d.id}" ${p.dept===d.id?'selected':''}>${d.name}</option>`).join('')}</select></label>
-    <button class="btn" id="ps">${first?'Entrar':'Guardar'}</button></div>`;
+    <button class="btn" id="ps">${first?'Entrar':'Guardar'}</button></div>
+  <details class="card" style="max-width:460px" ${S.admin?'open':''}><summary style="cursor:pointer;color:var(--mut)">Acceso de administración</summary>
+    ${S.admin ? '<p>Modo administrador <b>activado</b>: todo está desbloqueado.</p><button class="btn ghost" id="admOff">Desactivar modo administrador</button>' : '<div class="row" style="margin-top:10px"><input type="password" id="admCode" placeholder="Código" style="width:160px"><button class="btn ghost" id="admOn">Activar</button><span id="admMsg" style="color:var(--bad)"></span></div>'}
+  </details>`;
+  const on = $('#admOn'); if(on) on.onclick = () => { if(h53($('#admCode').value.trim())===ADMIN_HASH){ draft = {name:$('#pn').value, puesto:$('#pp').value, dept:$('#pd').value}; S.admin = true; save(); renderProfile(m); renderHeader(); } else { $('#admMsg').textContent = 'Código incorrecto'; } };
+  const off = $('#admOff'); if(off) off.onclick = () => { S.admin = false; save(); renderProfile(m); renderHeader(); };
   $('#ps').onclick = () => {
     const name = $('#pn').value.trim(); if(!name) return;
     S.profile = {name, puesto:$('#pp').value.trim(), dept:$('#pd').value};
     save();
-    view = first ? {dept:'comun', mod:null, tab:'portal'} : {dept:S.profile.dept, mod:null, tab:'portal'}; render();
+    view = (first && !S.admin) ? {dept:'comun', mod:null, tab:'portal'} : {dept:S.profile.dept, mod:null, tab:'portal'}; render();
   };
 }
 
