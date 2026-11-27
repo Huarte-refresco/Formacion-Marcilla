@@ -103,13 +103,6 @@ const DEPTS = [
 ];
 
 const MODULES = [
-  {id:'c-proceso', dept:'comun', title:'Así es nuestro proceso, de principio a fin', min:null, video:null, it:null,
-   pending:'Vídeo global del proceso pendiente de grabar. Mientras tanto, usa el esquema de arriba para ver cómo encaja cada departamento.'},
-  {id:'c-seguridad', dept:'comun', title:'Normas básicas de seguridad y accesos', min:null, video:null, it:null,
-   pending:'Pendiente de definir contenido (EPIs, circulación de carretillas, emergencias).'},
-  {id:'c-calidad-alim', dept:'comun', title:'Seguridad alimentaria y buenas prácticas', min:null, video:null, it:null,
-   pending:'Pendiente de definir contenido (higiene, alérgenos, vestimenta).'},
-
   {id:'q-ta', dept:'calidad', title:'Acidez titulable (TA)', min:2, video:'videos/acidez-titulable.mp4', it:'IT-2-MA-47',
    summary:'Cuántos ml de sosa (NaOH) se consumen hasta pH 8,75 en 100 ml de producto terminado desgasificado. Se mide con el titrador Mettler Toledo T-5.',
    points:[
@@ -181,13 +174,17 @@ const MODULES = [
    pending:'Pendiente de definir. Propuesta: recepción, paletizado, carretillas, expedición.'}
 ];
 
-const FLOW = [
-  {n:'Recepción', d:'Materias primas, envases', to:'logistica'},
-  {n:'Jarabe y mezcla', d:'Preparación del producto', to:'calidad'},
-  {n:'Llenado', d:'Líneas PET y latas', to:'produccion'},
-  {n:'Embalaje y paletizado', d:'Etiquetado, packs, palés', to:'produccion'},
-  {n:'Almacén y expedición', d:'Carga y envío', to:'logistica'}
+// Recorrido obligatorio por los procesos. Cuando grabéis cada vídeo, poned su ruta en "video"
+// (por ejemplo 'videos/proceso-1-recepcion.mp4') y subid el archivo a la carpeta videos.
+const TOUR = [
+  {id:'t1', title:'Recepción', desc:'Entrada de materias primas y envases a la planta.', video:null},
+  {id:'t2', title:'Jarabe y mezcla', desc:'Preparación del jarabe y del producto.', video:null},
+  {id:'t3', title:'Llenado', desc:'Líneas de llenado de PET y de latas.', video:null},
+  {id:'t4', title:'Embalaje y paletizado', desc:'Etiquetado, formación de packs y palés.', video:null},
+  {id:'t5', title:'Almacén y expedición', desc:'Almacenaje, carga y envío al cliente.', video:null}
 ];
+const tourSeen = id => !!(S.tour && S.tour[id]);
+const tourDone = () => TOUR.every(t => tourSeen(t.id));
 
 // ---------- Estado ----------
 let mem = null;
@@ -196,13 +193,14 @@ function load(){ try{ const s = localStorage.getItem(KEY); if(s) return JSON.par
 function save(){ mem = S; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 let S = load();
 if(!S.done) S.done = {};
-let view = !S.profile ? {dept:'perfil', mod:null, tab:'portal'} : (S.welcomed ? {dept:S.profile.dept, mod:null, tab:'portal'} : {dept:'comun', mod:null, tab:'portal'});
+if(!S.tour) S.tour = {};
+let view = !S.profile ? {dept:'perfil', mod:null, tab:'portal'} : (tourDone() ? {dept:S.profile.dept, mod:null, tab:'portal'} : {dept:'comun', mod:null, tab:'portal'});
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const realMods = d => MODULES.filter(m => m.dept===d && m.video);
 const isDone = id => !!(S.done[id] && S.done[id].date);
-function pct(d){ const r = realMods(d); if(!r.length) return null; return Math.round(100*r.filter(m=>isDone(m.id)).length/r.length); }
+function pct(d){ if(d==='comun') return Math.round(100*TOUR.filter(t=>tourSeen(t.id)).length/TOUR.length); const r = realMods(d); if(!r.length) return null; return Math.round(100*r.filter(m=>isDone(m.id)).length/r.length); }
 const today = () => new Date().toLocaleDateString('es-ES');
 
 // ---------- Render ----------
@@ -215,11 +213,13 @@ function renderNav(){
   const n = $('#nav');
   n.innerHTML = DEPTS.map(d => {
     const p = pct(d.id);
-    return `<button data-d="${d.id}" class="${view.dept===d.id && view.tab==='portal'?'on':''}"><span class="ico">${d.ic}</span>${d.name}<span class="pct">${p===null?'':p+' %'}</span></button>`;
+    const locked = d.id!=='comun' && S.profile && !tourDone();
+    return `<button data-d="${d.id}" ${locked?'title="Completa primero el recorrido por la planta"':''} style="${locked?'opacity:.5':''}" class="${view.dept===d.id && view.tab==='portal'?'on':''}"><span class="ico">${d.ic}</span>${d.name}<span class="pct">${locked?'🔒':(p===null?'':p+' %')}</span></button>`;
   }).join('') + '<div class="sep"></div>' +
   `<button data-d="registro" class="${view.tab==='registro'?'on':''}"><span class="ico">✓</span>Registro de formación</button>`;
   n.querySelectorAll('button').forEach(b => b.onclick = () => {
     const d = b.dataset.d;
+    if(d!=='comun' && d!=='registro' && S.profile && !tourDone()){ view = {dept:'comun', mod:null, tab:'portal'}; render(); return; }
     if(d==='registro'){ view = {dept:view.dept, mod:null, tab:'registro'}; }
     else view = {dept:d, mod:null, tab:'portal'};
     render();
@@ -229,8 +229,10 @@ function render(){
   document.querySelector('.wrap').classList.toggle('gate', !S.profile);
   renderHeader(); renderNav();
   const m = $('#main');
+  if(S.profile && !tourDone() && view.tab==='portal' && view.dept!=='comun' && view.dept!=='perfil'){ view = {dept:'comun', mod:null, tab:'portal'}; }
   if(view.dept==='perfil' && view.tab==='portal') return renderProfile(m);
   if(view.tab==='registro') return renderRegistro(m);
+  if(view.mod && /^t\d$/.test(view.mod)) return renderTourStep(m, TOUR.find(t=>t.id===view.mod));
   if(view.mod) return renderModule(m, MODULES.find(x=>x.id===view.mod));
   renderDept(m);
   window.scrollTo(0,0);
@@ -238,27 +240,65 @@ function render(){
 
 function renderDept(m){
   const d = DEPTS.find(x=>x.id===view.dept);
+  if(d.id==='comun') return renderWelcome(m);
   let h = `<h2>${d.name}</h2><p class="lead">${d.desc}</p>`;
-  if(d.id==='comun' && S.profile){
-    h = `<div class="hero"><h2>Bienvenido a Refresco, ${esc(S.profile.name.split(' ')[0])}</h2><p>Nos alegra tenerte en la planta de Marcilla. Aquí tienes cómo trabajamos; después pasas a la formación de tu departamento.</p></div>`;
-  }
-  if(d.id==='comun'){
-    h += `<div class="card"><b>El recorrido del producto en la planta</b><p class="lead" style="margin:4px 0 0;font-size:13px">Esquema orientativo: pulsa en una etapa para ir al departamento responsable. Ajustar a la realidad de Marcilla.</p><div class="flow">` +
-      FLOW.map((f,i)=>`<button data-go="${f.to}"><b>${i+1}. ${f.n}</b><span>${f.d}</span></button>`).join('<span class="arrow">→</span>') +
-      `</div><p style="margin:0;font-size:13px;color:var(--mut)">Calidad acompaña todo el recorrido: controla materias primas, producto en proceso y producto terminado.</p></div>`;
-  }
   h += '<div class="grid">' + MODULES.filter(x=>x.dept===d.id).map(x=>{
     const st = x.video ? (isDone(x.id) ? '<span class="tag ok">Completada</span>' : '<span class="tag">Por hacer</span>') : '<span class="tag off">Pendiente de contenido</span>';
     return `<button class="mod" data-m="${x.id}">${st}<h3>${esc(x.title)}</h3><p>${x.video ? (x.min?'Vídeo de ~'+x.min+' min · ':'')+(x.it?'Instrucción '+x.it:'') : 'Sin vídeo todavía'}</p></button>`;
   }).join('') + '</div>';
-  if(d.id==='comun' && S.profile){
-    const dn = DEPTS.find(x=>x.id===S.profile.dept).name;
-    h += `<div class="card row" style="margin-top:16px"><button class="btn" id="goDept">Continuar a mi departamento: ${esc(dn)} →</button></div>`;
-  }
   m.innerHTML = h;
-  const gd = $('#goDept'); if(gd) gd.onclick = () => { S.welcomed = true; save(); view = {dept:S.profile.dept, mod:null, tab:'portal'}; render(); };
   m.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { view.mod = b.dataset.m; render(); });
-  m.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { view = {dept:b.dataset.go, mod:null, tab:'portal'}; render(); });
+  window.scrollTo(0,0);
+}
+
+function renderWelcome(m){
+  const done = tourDone();
+  const seen = TOUR.filter(t=>tourSeen(t.id)).length;
+  const first = S.profile ? esc(S.profile.name.split(' ')[0]) : '';
+  let h = `<div class="hero"><h2>Bienvenido a Refresco${first?', '+first:''}</h2><p>Antes de pasar a tu departamento, haz un recorrido por todos los procesos de la planta. Así verás cómo encaja tu trabajo en el conjunto.</p></div>`;
+  h += `<div class="card"><div class="row" style="justify-content:space-between"><b>Recorrido por la planta</b><span style="color:var(--mut);font-size:13px">${seen} de ${TOUR.length} procesos vistos</span></div><div class="bar" style="margin:8px 0 12px"><i style="width:${Math.round(100*seen/TOUR.length)}%"></i></div><div class="flow">` +
+    TOUR.map((t,i)=>{
+      const ok = tourSeen(t.id), avail = ok || i===0 || tourSeen(TOUR[i-1].id);
+      return `<button data-t="${t.id}" ${avail?'':'disabled'} style="${avail?'':'opacity:.45;cursor:not-allowed'}"><b>${ok?'✓ ':(avail?'':'🔒 ')}${i+1}. ${t.title}</b><span>${t.desc}</span></button>`;
+    }).join('<span class="arrow">→</span>') + `</div>`;
+  if(done){
+    const dn = S.profile ? DEPTS.find(x=>x.id===S.profile.dept).name : '';
+    h += `<p style="margin:4px 0 12px"><b>¡Recorrido completado!</b> Ya puedes pasar a la formación de tu departamento.</p><button class="btn" id="goDept">Continuar a mi departamento: ${esc(dn)} →</button>`;
+  } else {
+    h += `<p style="margin:4px 0 0;color:var(--mut);font-size:13px">Ve los procesos en orden. Al terminar los ${TOUR.length} se desbloquea la formación de tu departamento.</p>`;
+  }
+  h += `</div>`;
+  m.innerHTML = h;
+  m.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { view.mod = b.dataset.t; render(); });
+  const gd = $('#goDept'); if(gd) gd.onclick = () => { view = {dept:S.profile.dept, mod:null, tab:'portal'}; render(); };
+  window.scrollTo(0,0);
+}
+
+function renderTourStep(m, t){
+  const i = TOUR.indexOf(t), next = TOUR[i+1];
+  const seen = tourSeen(t.id);
+  let h = `<button class="back" id="back">← Recorrido por la planta</button><h2>Proceso ${i+1} de ${TOUR.length}: ${esc(t.title)}</h2><p class="lead">${esc(t.desc)}</p>`;
+  h += t.video ? `<div class="card"><div class="vwrap"><video id="tv" controls preload="metadata" src="${t.video}"></video></div></div>`
+               : `<div class="ph" style="margin-bottom:14px">Vídeo de este proceso pendiente de grabar.</div>`;
+  h += `<div class="card row"><button class="btn" id="seen">${seen?(next?'Siguiente proceso →':'Terminar recorrido →'):(next?'He visto este proceso · Siguiente →':'He visto este proceso · Terminar recorrido →')}</button><span id="sm" style="color:var(--mut)"></span></div>`;
+  m.innerHTML = h;
+  $('#back').onclick = () => { view.mod = null; render(); };
+  const btn = $('#seen'), v = $('#tv');
+  let allowed = seen || !t.video;
+  if(!allowed){
+    btn.disabled = true; $('#sm').textContent = 'Se activa al terminar el vídeo.';
+    const open = () => { allowed = true; btn.disabled = false; $('#sm').textContent=''; };
+    v.addEventListener('ended', open);
+    v.addEventListener('timeupdate', () => { if(v.duration && v.currentTime/v.duration >= 0.95) open(); });
+  }
+  btn.onclick = () => {
+    if(!allowed) return;
+    if(!S.tour) S.tour = {};
+    if(!S.tour[t.id]) S.tour[t.id] = today();
+    save();
+    view.mod = next ? next.id : null; render();
+  };
+  window.scrollTo(0,0);
 }
 
 function renderModule(m, mod){
@@ -335,28 +375,23 @@ function renderProfile(m){
   $('#ps').onclick = () => {
     const name = $('#pn').value.trim(); if(!name) return;
     S.profile = {name, puesto:$('#pp').value.trim(), dept:$('#pd').value};
-    if(first) S.welcomed = false;
     save();
     view = first ? {dept:'comun', mod:null, tab:'portal'} : {dept:S.profile.dept, mod:null, tab:'portal'}; render();
   };
 }
 
 function renderRegistro(m){
-  const rows = MODULES.filter(x=>x.video).map(x=>{
-    const r = S.done[x.id]||{};
-    const dn = DEPTS.find(d=>d.id===x.dept).name;
-    return {dn, t:x.title, it:x.it, st:isDone(x.id)?'Completada':'Pendiente', date:r.date||'', sc:r.score!==undefined&&r.score!==null?Math.round(r.score*100)+' %':'', val:r.valid||''};
-  });
-  const csv = ['Persona;Puesto;Departamento;Formación;IT;Estado;Fecha;Nota;Validado por'].concat(
-    rows.map(r=>[S.profile?S.profile.name:'', S.profile?S.profile.puesto:'', r.dn, r.t, r.it, r.st, r.date, r.sc, r.val].join(';'))).join('\n');
+  const tn = TOUR.filter(t=>tourSeen(t.id)).length;
+  const tdate = tourDone() ? (S.tour[TOUR[TOUR.length-1].id]||'') : '';
+  const items = [{id:null, title:'Recorrido por la planta ('+tn+' de '+TOUR.length+' procesos)', sub:'Bienvenida común', it:'', ok:tourDone(), date:tdate, sc:'', val:''}].concat(
+    MODULES.filter(x=>x.video).map(x=>{ const r=S.done[x.id]||{}; return {id:x.id, title:x.title, sub:DEPTS.find(d=>d.id===x.dept).name+' · '+x.it, it:x.it, ok:isDone(x.id), date:r.date||'', sc:(r.score!==undefined&&r.score!==null)?Math.round(r.score*100)+' %':'', val:r.valid||''}; }));
+  const csv = ['Persona;Puesto;Formación;IT;Estado;Fecha;Nota;Validado por'].concat(
+    items.map(r=>[S.profile?S.profile.name:'', S.profile?S.profile.puesto:'', r.title, r.it, r.ok?'Completada':'Pendiente', r.date, r.sc, r.val].join(';'))).join('\n');
   m.innerHTML = `<h2>Registro de formación</h2><p class="lead">${S.profile?esc(S.profile.name)+(S.profile.puesto?' · '+esc(S.profile.puesto):''):'Identifícate para que el registro lleve tu nombre.'}</p>
   <div class="card"><table><thead><tr><th>Formación</th><th>Estado</th><th>Fecha</th><th>Nota</th><th>Validado por</th></tr></thead><tbody>` +
-  MODULES.filter(x=>x.video).map((x,i)=>{
-    const r = rows[i];
-    return `<tr><td><b>${esc(x.title)}</b><br><span style="color:var(--mut);font-size:12px">${r.dn} · ${esc(x.it)}</span></td>
-    <td><span class="tag ${r.st==='Completada'?'ok':'warn'}">${r.st}</span></td><td>${r.date}</td><td>${r.sc}</td>
-    <td><input type="text" data-v="${x.id}" value="${esc(r.val)}" placeholder="Responsable" style="width:130px"></td></tr>`;
-  }).join('') + `</tbody></table></div>
+  items.map(r=>`<tr><td><b>${esc(r.title)}</b><br><span style="color:var(--mut);font-size:12px">${esc(r.sub)}</span></td>
+    <td><span class="tag ${r.ok?'ok':'warn'}">${r.ok?'Completada':'Pendiente'}</span></td><td>${r.date}</td><td>${r.sc}</td>
+    <td>${r.id?`<input type="text" data-v="${r.id}" value="${esc(r.val)}" placeholder="Responsable" style="width:130px">`:''}</td></tr>`).join('') + `</tbody></table></div>
   <div class="card"><b>Copiar registro</b><p class="lead" style="font-size:13px;margin:2px 0 8px">Texto separado por «;» para pegar en Excel.</p>
   <textarea id="csv" readonly>${esc(csv)}</textarea><div class="row" style="margin-top:8px"><button class="btn" id="cp">Copiar</button><span id="cpm" style="color:var(--mut)"></span></div></div>
   <div class="note">Prototipo: este registro se guarda solo en este navegador. Para que Calidad y los responsables vean los registros de todas las personas hace falta conectarlo a una base de datos compartida.</div>`;
