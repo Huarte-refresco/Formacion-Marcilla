@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal de formación · Planta de Marcilla</title>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#fff; --ink:#1b2430; --mut:#5d6b7c; --line:#dde2e8;
+  --brand:#0b5cab; --brand-d:#084a8a; --ok:#1d8a4e; --warn:#b7791f; --bad:#c0392b; --soft:#e8f0fa;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#12171d;--card:#1b222b;--ink:#e8edf3;--mut:#9aa8b8;--line:#2c3744;--brand:#4a9be8;--brand-d:#6ab0f0;--ok:#43c47a;--warn:#e0a94a;--bad:#ef6a5b;--soft:#1f2d3f}
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--brand);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:650}
+header small{opacity:.85;display:block;font-weight:400;font-size:12px}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit}
+.wrap{display:grid;grid-template-columns:260px 1fr;gap:20px;max-width:1180px;margin:0 auto;padding:20px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr;padding:12px}}
+nav{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;align-self:start}
+nav button{display:flex;width:100%;align-items:center;gap:10px;background:none;border:0;border-radius:8px;padding:10px;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+nav button:hover{background:var(--soft)}
+nav button.on{background:var(--soft);font-weight:650;color:var(--brand)}
+nav .pct{margin-left:auto;font-size:12px;color:var(--mut)}
+nav .sep{height:1px;background:var(--line);margin:6px 4px}
+.ico{width:26px;height:26px;border-radius:7px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+main{min-width:0}
+h2{margin:0 0 4px;font-size:22px}
+.lead{color:var(--mut);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.mod{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:6px}
+.mod:hover{border-color:var(--brand)}
+.mod h3{margin:0;font-size:15px}
+.mod p{margin:0;color:var(--mut);font-size:13px}
+.tag{display:inline-block;font-size:11px;border-radius:99px;padding:2px 9px;background:var(--soft);color:var(--brand);font-weight:600;align-self:flex-start}
+.tag.ok{background:rgba(29,138,78,.15);color:var(--ok)}
+.tag.warn{background:rgba(183,121,31,.15);color:var(--warn)}
+.tag.off{background:var(--line);color:var(--mut)}
+video{width:100%;max-height:68vh;background:#000;border-radius:10px;display:block}
+.vwrap{display:flex;justify-content:center;background:#000;border-radius:10px}
+.vwrap video{width:auto;max-width:100%}
+.ph{border:2px dashed var(--line);border-radius:10px;padding:36px 16px;text-align:center;color:var(--mut)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font:inherit;font-weight:600}
+.btn:hover{background:var(--brand-d)}
+.btn.ghost{background:none;color:var(--brand);border:1px solid var(--brand)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+label.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+label.chk:last-child{border:0}
+input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--brand)}
+input[type=text],select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
+textarea{width:100%;min-height:150px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.q{margin:14px 0}
+.q b{display:block;margin-bottom:6px}
+.opt{display:flex;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;margin:5px 0;cursor:pointer}
+.opt.right{border-color:var(--ok);background:rgba(29,138,78,.1)}
+.opt.wrong{border-color:var(--bad);background:rgba(192,57,43,.1)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.flow{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch;margin:10px 0}
+.flow button{flex:1 1 130px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.flow button:hover{border-color:var(--brand)}
+.flow button b{display:block;font-size:13px;color:var(--brand)}
+.flow button span{font-size:12px;color:var(--mut)}
+.arrow{align-self:center;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{color:var(--mut);font-weight:600}
+.note{background:rgba(183,121,31,.12);border-left:4px solid var(--warn);padding:10px 12px;border-radius:6px;font-size:13px;margin:10px 0}
+.back{background:none;border:0;color:var(--brand);cursor:pointer;font:inherit;padding:0;margin-bottom:10px}
+ul.kp{margin:6px 0 0;padding-left:20px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Portal de formación · Planta de Marcilla</h1><small>Acogida e instrucciones de trabajo para personal de nueva incorporación</small></div>
+  <div class="sp"></div>
+  <button id="profBtn"></button>
+</header>
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+// ---------- Datos ----------
+const DEPTS = [
+  {id:'comun', name:'Bienvenida común', ic:'★', desc:'Para todas las personas que entran a la planta, sea cual sea su departamento.'},
+  {id:'calidad', name:'Calidad', ic:'Q', desc:'Análisis de producto terminado en laboratorio.'},
+  {id:'produccion', name:'Producción', ic:'P', desc:'Líneas de llenado: PET y latas.'},
+  {id:'mantenimiento', name:'Mantenimiento', ic:'M', desc:'Mantenimiento de líneas y equipos.'},
+  {id:'logistica', name:'Logística', ic:'L', desc:'Almacén, paletizado y expedición.'}
+];
+
+const MODULES = [
+  {id:'c-proceso', dept:'comun', title:'Así es nuestro proceso, de principio a fin', min:null, video:null, it:null,
+   pending:'Vídeo global del proceso pendiente de grabar. Mientras tanto, usa el esquema de arriba para ver cómo encaja cada departamento.'},
+  {id:'c-seguridad', dept:'comun', title:'Normas básicas de seguridad y accesos', min:null, video:null, it:null,
+   pending:'Pendiente de definir contenido (EPIs, circulación de carretillas, emergencias).'},
+  {id:'c-calidad-alim', dept:'comun', title:'Seguridad alimentaria y buenas prácticas', min:null, video:null, it:null,
+   pending:'Pendiente de definir contenido (higiene, alérgenos, vestimenta).'},
+
+  {id:'q-ta', dept:'calidad', title:'Acidez titulable (TA)', min:2, video:'videos/acidez-titulable.mp4', it:'IT-2-MA-47',
+   summary:'Cuántos ml de sosa (NaOH) se consumen hasta pH 8,75 en 100 ml de producto terminado desgasificado. Se mide con el titrador Mettler Toledo T-5.',
+   points:[
+     'Desgasificar la muestra con el Somex antes de medir (programa nº 2 para Rockstar).',
+     'Medir 100 ml de la muestra desgasificada en matraz aforado.',
+     'Seleccionar en el titrador el método CIT 8,75ME y comprobar que el tamaño de muestra es 100 ml.',
+     'R1 = ml de sosa consumidos (valor TA). R2 = % de ácido cítrico valorado a pH 8,75.',
+     'Una muestra mal descarbonatada da un TA más alto; más alcalinidad en el agua, TA más bajo.'],
+   quiz:[
+     {q:'¿Qué es el valor TA?', o:['Los ml de NaOH 0,1 N consumidos hasta pH 8,75 en 100 ml de producto desgasificado','El pH final de la muestra','El % de azúcar de la muestra','La conductividad del producto'], a:0},
+     {q:'¿Qué hay que hacer antes de medir la muestra?', o:['Enfriarla en nevera 24 h','Desgasificarla con el equipo Somex','Diluirla al 50 %','Filtrarla con papel'], a:1},
+     {q:'¿Qué método se elige en el titrador Mettler Toledo T-5?', o:['PERACETICO','MEDIR PH','CIT 8,75ME','CEBAR BUR'], a:2},
+     {q:'¿Qué volumen de muestra desgasificada se mide en el matraz aforado?', o:['50 ml','100 ml','250 ml','500 ml'], a:1},
+     {q:'En la pantalla de resultados, ¿qué representa R1?', o:['El % de ácido cítrico','La temperatura','Los ml de sosa consumidos (TA)','El pH inicial'], a:2},
+     {q:'Si la muestra no está bien descarbonatada, el TA…', o:['Disminuye','No cambia','Aumenta','No se puede medir'], a:2}
+   ]},
+  {id:'q-cf', dept:'calidad', title:'Acidez cítrica y fosfórica', min:2, video:'videos/acidez-citrica-fosforica.mp4', it:'IT-2-MA-11',
+   summary:'La acidez es la suma de los ácidos minerales y orgánicos. Se analiza en materias primas, jarabes y producto terminado, por volumetría o con el titrador (métodos cítrico, fosfórico y tartárico).',
+   points:[
+     'Quitar el gas al producto terminado antes de analizar la acidez.',
+     'Con el titrador: elegir el método en la pantalla principal (cítrico, fosfórico) e introducir el peso de la muestra. Hace falta un mínimo de 40 ml para que la muestra cubra el sensor.',
+     'Colocar el vaso en el sensor, pulsar Iniciar, marcar OK cuando lo pida, esperar la valoración y marcar OK al ver el resultado R2.',
+     'Acidez tartárica: se elige el método tartárico; el volumen son 50 ml y ya viene indicado en el titrador (no hay que escribir nada).',
+     'Volumetría (alternativa): pesar la muestra según producto (limón 7 g, cola 12 g, limonade, lima-limón y gaseosa 25 g, resto 9 g) y valorar con NaOH o KOH hasta coloración ligeramente rosada (pH 8,1).'],
+   quiz:[
+     {q:'¿Qué mide el análisis de acidez de esta instrucción?', o:['Solo el ácido cítrico','La suma de los ácidos minerales y orgánicos','Los sólidos solubles','La conductividad del agua'], a:1},
+     {q:'¿Qué hay que hacer con el producto terminado antes de analizar la acidez?', o:['Quitarle el gas','Calentarlo a 40 ºC','Añadirle fenolftaleína','Congelarlo'], a:0},
+     {q:'¿Qué cantidad mínima de muestra hace falta en el titrador para cubrir el sensor?', o:['10 ml','20 ml','40 ml','100 ml'], a:2},
+     {q:'En el titrador, ¿qué aparece como resultado al terminar la valoración?', o:['R1','R2','R3','pH final'], a:1},
+     {q:'Para la acidez tartárica en el titrador, ¿qué volumen se usa?', o:['50 ml, ya indicado en el equipo','25 ml, hay que escribirlo','100 ml, hay que escribirlo','El que quiera el operario'], a:0},
+     {q:'En la volumetría, ¿hasta qué punto se valora?', o:['Incoloro','Coloración ligeramente rosada (pH 8,1)','Color amarillo','pH 4,5'], a:1},
+     {q:'En la volumetría, ¿cuánto producto se pesa para limón?', o:['7 g','12 g','25 g','9 g'], a:0}
+   ]},
+  {id:'q-brix', dept:'calidad', title:'Brix', min:1, video:'videos/brix.mp4', it:'IT-2-MA-10',
+   summary:'Determinación del Brix en materias primas, jarabes y producto terminado con refractómetro digital o manual. Es responsabilidad del personal de laboratorio.',
+   points:[
+     'Equipo: refractómetro digital (precisión 0,01 %) o manual. Reactivo: agua destilada.',
+     'Cada vez que se mide el Brix, comprobar que el cero es correcto antes y después del análisis.',
+     'El refractómetro digital da el valor del Brix directamente en pantalla.',
+     'Para el manejo concreto del equipo, seguir el manual del refractómetro.'],
+   quiz:[
+     {q:'¿Qué hay que comprobar antes y después de cada análisis de Brix?', o:['La temperatura de la sala','Que el valor de cero es correcto','El color de la muestra','El pH de la muestra'], a:1},
+     {q:'¿Qué reactivo se usa?', o:['Sosa','Fenolftaleína','Agua destilada','Ácido cítrico'], a:2},
+     {q:'¿Con qué precisión trabaja el refractómetro digital según la IT?', o:['1 %','0,1 %','0,01 %','0,001 %'], a:2},
+     {q:'¿En qué productos se aplica esta instrucción?', o:['Solo en producto terminado','Materias primas, jarabes y producto terminado','Solo en agua','Solo en jarabes'], a:1},
+     {q:'¿Cómo da el resultado el refractómetro digital?', o:['Hay que calcularlo con una fórmula','Directamente en pantalla','Con un cambio de color','En una hoja impresa'], a:1}
+   ]},
+  {id:'q-cond', dept:'calidad', title:'Conductividad del agua', min:1, video:'videos/conductividad.mp4', it:'IT-2-MA-05',
+   summary:'Determinación de la conductividad del agua tratada, de pozo, de piscinas, muestras del CIP y agua de torres. El análisis se hace a diario, del agua tratada, de pozo y de llenadora.',
+   points:[
+     'Material: conductivímetro, tres vasos de precipitados y agua destilada.',
+     'Introducir en la muestra los dos electrodos (temperatura y conductividad), esperar unos 30 segundos a que estabilice la temperatura y pulsar el botón «µS/cm».',
+     'El aparato da el valor directamente, en microsiemens (µS) o milisiemens (mS).',
+     'Anotar el valor en la hoja «análisis físico-químico diario del agua» (RE2-AG-01-001).',
+     'Los valores correctos están en la tabla «análisis de aguas Marcilla».'],
+   quiz:[
+     {q:'¿Cuánto se espera con los electrodos en la muestra antes de pulsar el botón?', o:['Unos 5 segundos','Unos 30 segundos','Unos 5 minutos','No se espera'], a:1},
+     {q:'¿Qué electrodos se introducen en la muestra?', o:['Solo el de conductividad','El de temperatura y el de conductividad','El de pH y el de Brix','Ninguno, se mide en el vaso'], a:1},
+     {q:'¿En qué unidades da el resultado el aparato?', o:['Grados Brix','ml de sosa','Microsiemens (µS) o milisiemens (mS)','% de ácido'], a:2},
+     {q:'¿Dónde se anotan los valores?', o:['En la hoja RE2-AG-01-001 de análisis físico-químico diario del agua','En una pizarra','No hace falta anotarlos','En el parte de producción'], a:0},
+     {q:'¿Con qué se comparan los valores medidos para saber si son correctos?', o:['Con la tabla «análisis de aguas Marcilla»','Con el valor del día anterior','Con el valor del Brix','Con la opinión del operario'], a:0}
+   ]},
+
+  {id:'p-pend', dept:'produccion', title:'Formaciones de Producción', min:null, video:null, it:null,
+   pending:'Pendiente de definir. Propuesta: arranque y cambio de formato, limpieza, control de línea, registro de paradas.'},
+  {id:'m-pend', dept:'mantenimiento', title:'Formaciones de Mantenimiento', min:null, video:null, it:null,
+   pending:'Pendiente de definir. Propuesta: paradas técnicas, lubricación, órdenes de trabajo, bloqueo y etiquetado (LOTO).'},
+  {id:'l-pend', dept:'logistica', title:'Formaciones de Logística', min:null, video:null, it:null,
+   pending:'Pendiente de definir. Propuesta: recepción, paletizado, carretillas, expedición.'}
+];
+
+const FLOW = [
+  {n:'Recepción', d:'Materias primas, envases', to:'logistica'},
+  {n:'Jarabe y mezcla', d:'Preparación del producto', to:'calidad'},
+  {n:'Llenado', d:'Líneas PET y latas', to:'produccion'},
+  {n:'Embalaje y paletizado', d:'Etiquetado, packs, palés', to:'produccion'},
+  {n:'Almacén y expedición', d:'Carga y envío', to:'logistica'}
+];
+
+// ---------- Estado ----------
+let mem = null;
+const KEY = 'portal-formacion-marcilla-v1';
+function load(){ try{ const s = localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){} return mem || {profile:null, done:{}}; }
+function save(){ mem = S; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = load();
+if(!S.done) S.done = {};
+let view = {dept:'comun', mod:null, tab:'portal'};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const realMods = d => MODULES.filter(m => m.dept===d && m.video);
+const isDone = id => !!(S.done[id] && S.done[id].date);
+function pct(d){ const r = realMods(d); if(!r.length) return null; return Math.round(100*r.filter(m=>isDone(m.id)).length/r.length); }
+const today = () => new Date().toLocaleDateString('es-ES');
+
+// ---------- Render ----------
+function renderHeader(){
+  const b = $('#profBtn');
+  b.textContent = S.profile ? '👤 ' + S.profile.name : '👤 Identificarme';
+  b.onclick = () => { view.tab='portal'; view.mod=null; view.dept='perfil'; render(); };
+}
+function renderNav(){
+  const n = $('#nav');
+  n.innerHTML = DEPTS.map(d => {
+    const p = pct(d.id);
+    return `<button data-d="${d.id}" class="${view.dept===d.id && view.tab==='portal'?'on':''}"><span class="ico">${d.ic}</span>${d.name}<span class="pct">${p===null?'':p+' %'}</span></button>`;
+  }).join('') + '<div class="sep"></div>' +
+  `<button data-d="registro" class="${view.tab==='registro'?'on':''}"><span class="ico">✓</span>Registro de formación</button>`;
+  n.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const d = b.dataset.d;
+    if(d==='registro'){ view = {dept:view.dept, mod:null, tab:'registro'}; }
+    else view = {dept:d, mod:null, tab:'portal'};
+    render();
+  });
+}
+function render(){
+  renderHeader(); renderNav();
+  const m = $('#main');
+  if(view.dept==='perfil' && view.tab==='portal') return renderProfile(m);
+  if(view.tab==='registro') return renderRegistro(m);
+  if(view.mod) return renderModule(m, MODULES.find(x=>x.id===view.mod));
+  renderDept(m);
+  window.scrollTo(0,0);
+}
+
+function renderDept(m){
+  const d = DEPTS.find(x=>x.id===view.dept);
+  let h = `<h2>${d.name}</h2><p class="lead">${d.desc}</p>`;
+  if(d.id==='comun'){
+    h += `<div class="card"><b>El recorrido del producto en la planta</b><p class="lead" style="margin:4px 0 0;font-size:13px">Esquema orientativo: pulsa en una etapa para ir al departamento responsable. Ajustar a la realidad de Marcilla.</p><div class="flow">` +
+      FLOW.map((f,i)=>`<button data-go="${f.to}"><b>${i+1}. ${f.n}</b><span>${f.d}</span></button>`).join('<span class="arrow">→</span>') +
+      `</div><p style="margin:0;font-size:13px;color:var(--mut)">Calidad acompaña todo el recorrido: controla materias primas, producto en proceso y producto terminado.</p></div>`;
+  }
+  h += '<div class="grid">' + MODULES.filter(x=>x.dept===d.id).map(x=>{
+    const st = x.video ? (isDone(x.id) ? '<span class="tag ok">Completada</span>' : '<span class="tag">Por hacer</span>') : '<span class="tag off">Pendiente de contenido</span>';
+    return `<button class="mod" data-m="${x.id}">${st}<h3>${esc(x.title)}</h3><p>${x.video ? (x.min?'Vídeo de ~'+x.min+' min · ':'')+(x.it?'Instrucción '+x.it:'') : 'Sin vídeo todavía'}</p></button>`;
+  }).join('') + '</div>';
+  m.innerHTML = h;
+  m.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { view.mod = b.dataset.m; render(); });
+  m.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { view = {dept:b.dataset.go, mod:null, tab:'portal'}; render(); });
+}
+
+function renderModule(m, mod){
+  const rec = S.done[mod.id] || (S.done[mod.id] = {});
+  let h = `<button class="back" id="back">← ${DEPTS.find(d=>d.id===mod.dept).name}</button><h2>${esc(mod.title)}</h2>`;
+  if(!mod.video){
+    h += `<div class="ph">${esc(mod.pending)}</div>`;
+    m.innerHTML = h; $('#back').onclick = () => { view.mod=null; render(); }; return;
+  }
+  h += `<p class="lead">${esc(mod.summary)}</p>`;
+  h += `<div class="card"><div class="vwrap"><video controls preload="metadata" src="${mod.video}"></video></div></div>`;
+  if(mod.points.length){
+    h += `<div class="card"><b>Puntos clave</b><ul class="kp">${mod.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>`;
+  }
+  h += `<div class="card"><b>Antes de continuar</b>
+    <label class="chk"><input type="checkbox" data-c="video" ${rec.video?'checked':''}> He visto el vídeo completo</label>
+    <label class="chk"><input type="checkbox" data-c="it" ${rec.it?'checked':''}> He leído la instrucción técnica ${esc(mod.it)} (documento de Calidad)</label></div>`;
+  if(mod.quiz.length){
+    h += `<div class="card"><b>Test de comprobación</b><p class="lead" style="font-size:13px;margin:2px 0 0">Necesitas acertar al menos el 80 %.</p><div id="quiz"></div></div>`;
+  } else if(mod.pendingQuiz){
+    h += `<div class="note">El test de esta formación está pendiente de preparar a partir de la instrucción ${esc(mod.it)}.</div>`;
+  }
+  h += `<div class="card row"><button class="btn" id="finish">Marcar formación como completada</button><span id="fmsg" style="color:var(--mut)"></span></div>`;
+  m.innerHTML = h;
+  $('#back').onclick = () => { view.mod=null; render(); };
+  m.querySelectorAll('[data-c]').forEach(c => c.onchange = () => { rec[c.dataset.c]=c.checked; save(); upd(); });
+  if(mod.quiz.length) buildQuiz(mod, rec, upd);
+  $('#finish').onclick = () => {
+    if(!S.profile){ $('#fmsg').textContent='Primero identifícate (botón de arriba a la derecha).'; return; }
+    rec.date = today(); rec.user = S.profile.name; save(); render();
+  };
+  function upd(){
+    const quizOk = !mod.quiz.length || rec.score>=0.8;
+    const ok = rec.video && rec.it && quizOk;
+    const f = $('#finish'); if(!f) return;
+    f.disabled = !ok && !isDone(mod.id);
+    f.textContent = isDone(mod.id) ? 'Completada el '+rec.date+' ✓' : 'Marcar formación como completada';
+    if(isDone(mod.id)) f.disabled = true;
+    $('#fmsg').textContent = ok || isDone(mod.id) ? '' : 'Marca los dos puntos' + (mod.quiz.length?' y supera el test':'') + ' para poder completarla.';
+  }
+  upd();
+}
+
+function buildQuiz(mod, rec, onChange){
+  const box = $('#quiz'); let ans = {}; let graded = false;
+  function draw(){
+    box.innerHTML = mod.quiz.map((q,i)=>`<div class="q"><b>${i+1}. ${esc(q.q)}</b>` +
+      q.o.map((o,j)=>{
+        let cls=''; if(graded){ if(j===q.a) cls='right'; else if(ans[i]===j) cls='wrong'; }
+        return `<label class="opt ${cls}"><input type="radio" name="q${i}" value="${j}" ${ans[i]===j?'checked':''} ${graded?'disabled':''}> ${esc(o)}</label>`;
+      }).join('') + `</div>`).join('') +
+      (graded ? `<p><b>Resultado: ${Math.round(rec.score*mod.quiz.length)} de ${mod.quiz.length} (${Math.round(rec.score*100)} %)</b> — ${rec.score>=0.8?'¡Superado!':'No alcanzas el 80 %, inténtalo de nuevo.'}</p><button class="btn ghost" id="retry">Repetir test</button>` :
+       `<button class="btn" id="grade" ${Object.keys(ans).length<mod.quiz.length?'disabled':''}>Corregir</button>`);
+    box.querySelectorAll('input[type=radio]').forEach(r => r.onchange = () => { ans[+r.name.slice(1)] = +r.value; draw(); });
+    const g = $('#grade'); if(g) g.onclick = () => {
+      const ok = mod.quiz.filter((q,i)=>ans[i]===q.a).length;
+      rec.score = ok/mod.quiz.length; graded = true; save(); draw(); onChange();
+    };
+    const r = $('#retry'); if(r) r.onclick = () => { ans={}; graded=false; rec.score=undefined; save(); draw(); onChange(); };
+  }
+  if(rec.score!==undefined && rec.score!==null){ mod.quiz.forEach((q,i)=>ans[i]=q.a); /* ya superado antes */ if(rec.score>=0.8){ graded=true; } }
+  draw();
+}
+
+function renderProfile(m){
+  const p = S.profile || {name:'', puesto:'', dept:'calidad'};
+  m.innerHTML = `<h2>Tu identificación</h2><p class="lead">Se usa para el registro de formación.</p>
+  <div class="card" style="display:grid;gap:10px;max-width:460px">
+    <label>Nombre y apellidos<br><input type="text" id="pn" style="width:100%" value="${esc(p.name)}"></label>
+    <label>Puesto<br><input type="text" id="pp" style="width:100%" value="${esc(p.puesto)}"></label>
+    <label>Departamento<br><select id="pd" style="width:100%">${DEPTS.filter(d=>d.id!=='comun').map(d=>`<option value="${d.id}" ${p.dept===d.id?'selected':''}>${d.name}</option>`).join('')}</select></label>
+    <button class="btn" id="ps">Guardar</button></div>`;
+  $('#ps').onclick = () => {
+    const name = $('#pn').value.trim(); if(!name) return;
+    S.profile = {name, puesto:$('#pp').value.trim(), dept:$('#pd').value}; save();
+    view = {dept:S.profile.dept, mod:null, tab:'portal'}; render();
+  };
+}
+
+function renderRegistro(m){
+  const rows = MODULES.filter(x=>x.video).map(x=>{
+    const r = S.done[x.id]||{};
+    const dn = DEPTS.find(d=>d.id===x.dept).name;
+    return {dn, t:x.title, it:x.it, st:isDone(x.id)?'Completada':'Pendiente', date:r.date||'', sc:r.score!==undefined&&r.score!==null?Math.round(r.score*100)+' %':'', val:r.valid||''};
+  });
+  const csv = ['Persona;Puesto;Departamento;Formación;IT;Estado;Fecha;Nota;Validado por'].concat(
+    rows.map(r=>[S.profile?S.profile.name:'', S.profile?S.profile.puesto:'', r.dn, r.t, r.it, r.st, r.date, r.sc, r.val].join(';'))).join('\n');
+  m.innerHTML = `<h2>Registro de formación</h2><p class="lead">${S.profile?esc(S.profile.name)+(S.profile.puesto?' · '+esc(S.profile.puesto):''):'Identifícate para que el registro lleve tu nombre.'}</p>
+  <div class="card"><table><thead><tr><th>Formación</th><th>Estado</th><th>Fecha</th><th>Nota</th><th>Validado por</th></tr></thead><tbody>` +
+  MODULES.filter(x=>x.video).map((x,i)=>{
+    const r = rows[i];
+    return `<tr><td><b>${esc(x.title)}</b><br><span style="color:var(--mut);font-size:12px">${r.dn} · ${esc(x.it)}</span></td>
+    <td><span class="tag ${r.st==='Completada'?'ok':'warn'}">${r.st}</span></td><td>${r.date}</td><td>${r.sc}</td>
+    <td><input type="text" data-v="${x.id}" value="${esc(r.val)}" placeholder="Responsable" style="width:130px"></td></tr>`;
+  }).join('') + `</tbody></table></div>
+  <div class="card"><b>Copiar registro</b><p class="lead" style="font-size:13px;margin:2px 0 8px">Texto separado por «;» para pegar en Excel.</p>
+  <textarea id="csv" readonly>${esc(csv)}</textarea><div class="row" style="margin-top:8px"><button class="btn" id="cp">Copiar</button><span id="cpm" style="color:var(--mut)"></span></div></div>
+  <div class="note">Prototipo: este registro se guarda solo en este navegador. Para que Calidad y los responsables vean los registros de todas las personas hace falta conectarlo a una base de datos compartida.</div>`;
+  m.querySelectorAll('[data-v]').forEach(i => i.onchange = () => { (S.done[i.dataset.v] = S.done[i.dataset.v]||{}).valid = i.value; save(); renderRegistro(m); });
+  $('#cp').onclick = async () => { try{ await navigator.clipboard.writeText(csv); $('#cpm').textContent='Copiado ✓'; }catch(e){ $('#csv').select(); $('#cpm').textContent='Selecciona y copia con Ctrl+C'; } };
+}
+
+render();
+</script>
+</body>
+</html>
